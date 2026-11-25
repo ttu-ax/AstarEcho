@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AstraEcho" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#070A16</item>
+        <item name="android:navigationBarColor">#070A16</item>
+        <item name="android:windowBackground">#070A16</item>
+    </style>
+</resources>

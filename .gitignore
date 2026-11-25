@@ -1,0 +1,24 @@
+# Gradle & Build outputs
+.gradle/
+build/
+app/build/
+captures/
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Local machine configuration
+local.properties
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Node / Web temporary files
+node_modules/
+*.log

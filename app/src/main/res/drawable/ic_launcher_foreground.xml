@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Minimalist perspective A-frame falling track rails -->
+    <path
+        android:pathData="M54,26 L30,78"
+        android:strokeWidth="4.4"
+        android:strokeColor="#38F2FF"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,26 L78,78"
+        android:strokeWidth="4.4"
+        android:strokeColor="#38F2FF"
+        android:strokeLineCap="round" />
+
+    <!-- Subtle inner track center divider -->
+    <path
+        android:pathData="M54,36 L54,74"
+        android:strokeWidth="1.6"
+        android:strokeColor="#5538F2FF"
+        android:strokeLineCap="round" />
+
+    <!-- Clean horizontal judgment bar (completes stylized 'A' + rhythm line) -->
+    <path
+        android:pathData="M24,69 L84,69"
+        android:strokeWidth="3.6"
+        android:strokeColor="#F4F8FF"
+        android:strokeLineCap="round" />
+
+    <!-- Two minimalist falling note pills -->
+    <path
+        android:pathData="M43,53 L51,53"
+        android:strokeWidth="4.2"
+        android:strokeColor="#FFD166"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M57,60 L67,60"
+        android:strokeWidth="4.2"
+        android:strokeColor="#FF3B8D"
+        android:strokeLineCap="round" />
+
+    <!-- Crisp 4-point star apex (Astra) -->
+    <path
+        android:pathData="M54,18 L56.4,23.6 L62,26 L56.4,28.4 L54,34 L51.6,28.4 L46,26 L51.6,23.6 Z"
+        android:fillColor="#FFFFFF" />
+</vector>

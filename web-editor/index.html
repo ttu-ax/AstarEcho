@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星律回响 · ASTRA ECHO 网页版谱面编辑器</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="studio-shell">
+    <!-- Top Header & Transport Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✦</div>
+        <div class="brand-text">
+          <h1>ASTRA ECHO <span class="badge">STUDIO</span></h1>
+          <p class="brand-sub">星律回响 · 网页版谱面编辑器（与 Android 端 100% 互通）</p>
+        </div>
+      </div>
+
+      <div class="transport">
+        <button id="btn-to-start" class="icon-btn" title="回到开头 (Home)">⏮</button>
+        <button id="btn-play" class="primary-btn play-btn" title="播放 / 暂停 (Space)">▶ 播放</button>
+        <button id="btn-record" class="rec-btn" title="实时键盘录谱模式 (R)">● 录谱</button>
+
+        <div class="time-readout" title="当前时间 / 总时长">
+          <span id="time-current">00:00.000</span>
+          <span class="time-sep">/</span>
+          <span id="time-total">00:00.000</span>
+        </div>
+
+        <label class="inline-select" title="播放倍速">
+          <span>倍速</span>
+          <select id="select-rate">
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1.0x</option>
+            <option value="1.25">1.25x</option>
+          </select>
+        </label>
+
+        <label class="toggle-chip" title="节拍器提示音">
+          <input type="checkbox" id="chk-metronome" />
+          <span>节拍器</span>
+        </label>
+        <label class="toggle-chip" title="音符打击提示音">
+          <input type="checkbox" id="chk-hitsound" checked />
+          <span>打击音</span>
+        </label>
+      </div>
+
+      <div class="topbar-actions">
+        <button id="btn-undo" class="ghost-btn" title="撤销 (Ctrl+Z)" disabled>↶ 撤销</button>
+        <button id="btn-redo" class="ghost-btn" title="重做 (Ctrl+Y)" disabled>↷ 重做</button>
+        <button id="btn-preview-3d" class="accent-btn" title="3D 透视试玩预览 (P)">▶ 3D 试玩</button>
+        <button id="btn-import" class="ghost-btn" title="导入 .zip 歌曲谱面包 或 .json 谱面">导入</button>
+        <button id="btn-export-zip" class="primary-btn" title="导出 Android 兼容的歌曲+谱面 .zip 包">导出 ZIP 包</button>
+        <button id="btn-export-json" class="ghost-btn" title="仅导出 .json 谱面文件">导出 JSON</button>
+        <button id="btn-help" class="icon-btn" title="快捷键与使用帮助 (?)">?</button>
+      </div>
+    </header>
+
+    <!-- Main 3-Column Workspace -->
+    <main class="workspace">
+      <!-- Left Panel: Audio, Song Meta, Grid & Auto-Charter -->
+      <aside class="panel panel-left">
+        <section class="card">
+          <div class="card-header">
+            <h2>音频与工程</h2>
+            <button id="btn-load-demo" class="mini-btn" title="加载内置合成电音示例">示例曲</button>
+          </div>
+          <div id="audio-dropzone" class="dropzone" tabindex="0" role="button" aria-label="点击或拖入音频或ZIP文件">
+            <div class="dropzone-icon">🎵</div>
+            <div id="audio-file-name" class="dropzone-title">拖入 MP3 / WAV / OGG / MP4 或 .ZIP</div>
+            <div id="audio-file-meta" class="dropzone-sub">支持拖拽音频或直接导入 Android 导出的谱面包</div>
+          </div>
+          <button id="btn-open-douyin" class="secondary-btn full-width douyin-entry-btn" title="粘贴抖音分享口令或网络音视频直链导入">🔗 抖音链接 / 网络直链导入</button>
+          <input type="file" id="file-audio-input" accept="audio/*,video/mp4,.zip,.json" hidden />
+          <input type="file" id="file-import-input" accept=".zip,.json" hidden />
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>曲目与谱面信息</h2>
+            <span id="autosave-status" class="status-pill">已自动保存</span>
+          </div>
+          <div class="form-grid">
+            <label class="field">
+              <span>曲名</span>
+              <input type="text" id="input-title" value="星律回响 Demo" placeholder="输入曲名" />
+            </label>
+            <label class="field">
+              <span>曲师 / 谱师</span>
+              <input type="text" id="input-artist" value="ASTRA STUDIO" placeholder="输入作者" />
+            </label>
+            <div class="field-row">
+              <label class="field">
+                <span>BPM</span>
+                <input type="number" id="input-bpm" value="128" min="40" max="320" step="0.5" />
+              </label>
+              <label class="field">
+                <span>首拍偏移 (ms)</span>
+                <input type="number" id="input-offset" value="0" min="-5000" max="5000" step="5" />
+              </label>
+            </div>
+            <div class="field-row">
+              <label class="field">
+                <span>轨道数</span>
+                <select id="select-lanes">
+                  <option value="4" selected>4K</option>
+                  <option value="5">5K</option>
+                  <option value="6">6K</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>难度</span>
+                <select id="select-difficulty">
+                  <option value="EASY">EASY</option>
+                  <option value="NORMAL" selected>NORMAL</option>
+                  <option value="HARD">HARD</option>
+                  <option value="MASTER">MASTER</option>
+                </select>
+              </label>
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="chk-only-tap-hold" />
+              <span>仅点按 + 长条模式 (禁用滑键)</span>
+            </label>
+            <button id="btn-tap-bpm" class="secondary-btn full-width" title="跟着音乐节奏连续点击测算 BPM">🥁 节拍测速 (Tap BPM)</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>节拍吸附与视图</h2>
+          </div>
+          <div class="form-grid">
+            <label class="field">
+              <span>节拍细分 (Snap)</span>
+              <select id="select-snap">
+                <option value="1">1/1 拍</option>
+                <option value="2">1/2 拍</option>
+                <option value="4" selected>1/4 拍</option>
+                <option value="8">1/8 拍</option>
+                <option value="16">1/16 拍</option>
+                <option value="0">自由 (关闭吸附)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>时间轴缩放 (<span id="zoom-label">240</span> px/s)</span>
+              <input type="range" id="range-zoom" min="90" max="600" step="10" value="240" />
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="chk-show-waveform" checked />
+              <span>显示左侧音频波形</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>智能自动制谱</h2>
+          </div>
+          <p class="muted-note">基于当前加载的音频 PCM 频谱瞬态与段落强弱，自动生成均衡分布的初始谱面。</p>
+          <button id="btn-auto-chart" class="accent-btn full-width">✨ 一键自动生成谱面</button>
+        </section>
+
+        <section class="card stats-card">
+          <div class="card-header">
+            <h2>谱面统计</h2>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item"><span class="stat-label">总音符</span><strong id="stat-total">0</strong></div>
+            <div class="stat-item"><span class="stat-label">TAP</span><strong id="stat-tap">0</strong></div>
+            <div class="stat-item"><span class="stat-label">HOLD</span><strong id="stat-hold">0</strong></div>
+            <div class="stat-item"><span class="stat-label">SLIDE</span><strong id="stat-slide">0</strong></div>
+            <div class="stat-item"><span class="stat-label">折线长条</span><strong id="stat-hold-slide">0</strong></div>
+            <div class="stat-item"><span class="stat-label">平均 NPS</span><strong id="stat-nps">0.0</strong></div>
+          </div>
+          <div class="lane-balance">
+            <div class="lane-balance-label">各轨负荷分布</div>
+            <div id="lane-bars" class="lane-bars"></div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Center: Timeline Canvas & Live Keyboard Pads -->
+      <section class="stage-center">
+        <div class="stage-toolbar">
+          <div class="tool-group" role="toolbar" aria-label="编辑工具">
+            <button class="tool-btn active" data-tool="SELECT" title="选择 / 框选 / 拖拽移动 (1)">↖ 选择 <kbd>1</kbd></button>
+            <button class="tool-btn" data-tool="TAP" title="放置单点 TAP 音符 (2)">● TAP <kbd>2</kbd></button>
+            <button class="tool-btn" data-tool="HOLD" title="按住向上拖动放置长条 HOLD (3)">▮ HOLD <kbd>3</kbd></button>
+            <button class="tool-btn" data-tool="SLIDE" title="按住横向拖动放置滑键 SLIDE (4)">⇄ SLIDE <kbd>4</kbd></button>
+            <button class="tool-btn" data-tool="HOLD_SLIDE" title="按住斜向拖动放置折线长条 HOLD_SLIDE (5)">⤢ 折线 <kbd>5</kbd></button>
+            <button class="tool-btn danger" data-tool="ERASE" title="点击或拖动擦除音符 (6)">⌫ 橡皮 <kbd>6</kbd></button>
+          </div>
+          <div id="status-hint" class="stage-hint">滚轮缩放/滚动 · 右键快速删除 · 空格播放/暂停</div>
+        </div>
+
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <canvas id="timeline-canvas"></canvas>
+          <div class="scrubber-rail" title="快速定位进度">
+            <input type="range" id="timeline-scrubber" min="0" max="1000" value="0" orient="vertical" />
+          </div>
+        </div>
+
+        <div class="live-pads-bar">
+          <div class="live-pads-label">
+            <span id="rec-indicator" class="rec-dot"></span>
+            <span id="live-keys-hint">实时打谱键位：D / F / J / K（开启「● 录谱」并播放即可实时按键录谱）</span>
+          </div>
+          <div id="live-pads" class="live-pads"></div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Inspector, Batch Ops & Skin Preview -->
+      <aside class="panel panel-right">
+        <section class="card">
+          <div class="card-header">
+            <h2>音符属性检查器</h2>
+            <span id="selection-count" class="status-pill">未选中</span>
+          </div>
+          <div id="inspector-empty" class="empty-state">
+            点击或框选时间轴上的音符以微调时间、轨道、时长或折线节点。
+          </div>
+          <div id="inspector-form" class="form-grid" hidden>
+            <label class="field">
+              <span>音符类型</span>
+              <select id="insp-type">
+                <option value="TAP">TAP (单点)</option>
+                <option value="HOLD">HOLD (长条)</option>
+                <option value="SLIDE">SLIDE (滑键)</option>
+                <option value="HOLD_SLIDE">HOLD_SLIDE (折线长条)</option>
+              </select>
+            </label>
+            <div class="field-row">
+              <label class="field">
+                <span>时间 (ms)</span>
+                <input type="number" id="insp-time" step="10" min="0" />
+              </label>
+              <label class="field">
+                <span>起始轨道</span>
+                <input type="number" id="insp-lane" min="0" max="5" step="1" />
+              </label>
+            </div>
+            <div class="field-row">
+              <label class="field">
+                <span>持续时长 (ms)</span>
+                <input type="number" id="insp-duration" step="10" min="0" />
+              </label>
+              <label class="field">
+                <span>目标轨道</span>
+                <input type="number" id="insp-target-lane" min="0" max="5" step="1" />
+              </label>
+            </div>
+            <div class="nudge-row">
+              <button class="mini-btn" data-nudge="-50">-50ms</button>
+              <button class="mini-btn" data-nudge="-10">-10ms</button>
+              <button class="mini-btn" data-nudge="10">+10ms</button>
+              <button class="mini-btn" data-nudge="50">+50ms</button>
+            </div>
+            <button id="btn-delete-selected" class="danger-btn full-width">删除所选音符 (Del)</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>批量编辑操作</h2>
+          </div>
+          <div class="action-grid">
+            <button id="btn-select-all" class="secondary-btn">全选 (Ctrl+A)</button>
+            <button id="btn-copy" class="secondary-btn">复制 (Ctrl+C)</button>
+            <button id="btn-paste" class="secondary-btn">粘贴到指针</button>
+            <button id="btn-mirror" class="secondary-btn">左右镜像翻转</button>
+            <button id="btn-quantize" class="secondary-btn">对齐到节拍网</button>
+            <button id="btn-clear-all" class="danger-btn">清空全部音符</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>3D 试玩视觉设置</h2>
+          </div>
+          <div class="form-grid">
+            <label class="field">
+              <span>音符皮肤</span>
+              <select id="select-skin">
+                <option value="ASTRA_CYBER" selected>星律冰晶 (ASTRA CYBER)</option>
+                <option value="CLASSIC_MASTER">经典律动 (CLASSIC MASTER)</option>
+                <option value="SAKURA_PULSE">樱落幻梦 (SAKURA PULSE)</option>
+                <option value="CRIMSON_OVERDRIVE">绯红超载 (CRIMSON OVERDRIVE)</option>
+                <option value="EULER_CHALK">欧拉手稿 (EULER CHALK)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>透视倾角 (<span id="tilt-label">36</span>°)</span>
+              <input type="range" id="range-tilt" min="0" max="60" step="2" value="36" />
+            </label>
+            <label class="field">
+              <span>下落流速 (<span id="speed-label">1.0</span>x)</span>
+              <input type="range" id="range-speed" min="0.5" max="2.0" step="0.1" value="1.0" />
+            </label>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Native Dialog: 3D Perspective Test-Play Preview -->
+  <dialog id="dialog-preview" class="modal modal-wide" closedby="any">
+    <div class="modal-header">
+      <div>
+        <h3>3D 透视试玩预览</h3>
+        <p class="modal-sub" id="preview-keys-desc">使用键盘 D / F / J / K 实时击打音符 · Esc 关闭</p>
+      </div>
+      <div class="modal-header-actions">
+        <button id="btn-preview-restart" class="secondary-btn">↺ 从当前位置重播</button>
+        <button id="btn-preview-toggle" class="primary-btn">⏸ 暂停</button>
+        <button class="icon-btn" data-close-dialog="dialog-preview" aria-label="关闭">✕</button>
+      </div>
+    </div>
+    <div class="preview-stage">
+      <canvas id="preview-canvas"></canvas>
+      <div class="preview-hud">
+        <div class="hud-score">
+          <span class="hud-label">SCORE</span>
+          <strong id="hud-score-val">000000</strong>
+        </div>
+        <div class="hud-combo">
+          <strong id="hud-combo-val">0</strong>
+          <span class="hud-label">COMBO</span>
+        </div>
+        <div class="hud-judge" id="hud-judge-val"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Native Dialog: Auto-Chart Options -->
+  <dialog id="dialog-autochart" class="modal" closedby="any">
+    <div class="modal-header">
+      <h3>智能自动制谱参数</h3>
+      <button class="icon-btn" data-close-dialog="dialog-autochart" aria-label="关闭">✕</button>
+    </div>
+    <form method="dialog" class="modal-body form-grid">
+      <p class="muted-note">算法将分析音频能量包络、局部 AGC 瞬态与段落密度，并在多轨道间均匀分配左右手负荷。</p>
+      <label class="field">
+        <span>目标密度倍率 (<span id="ac-density-label">1.0</span>x)</span>
+        <input type="range" id="ac-density" min="0.6" max="1.6" step="0.1" value="1.0" />
+      </label>
+      <label class="field">
+        <span>长条最小持续阈值 (ms)</span>
+        <input type="number" id="ac-hold-min" value="420" min="250" max="1200" step="20" />
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="ac-drum-doubles" checked />
+        <span>重鼓点使用相邻双轨点按强化打击感</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="ac-all-diffs" checked />
+        <span>同时生成全部 4 个难度（EASY / NORMAL / HARD / MASTER）</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="ac-auto-bpm" checked />
+        <span>自动检测歌曲 BPM（按真实主音起音时间落点）</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="ac-quantize" />
+        <span>强制吸附到 BPM 节拍网格（BPM 精准校准后再勾选）</span>
+      </label>
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" data-close-dialog="dialog-autochart">取消</button>
+        <button type="button" id="btn-run-autochart" class="primary-btn">开始生成（覆盖当前谱面）</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Native Dialog: Douyin / URL Audio Import -->
+  <dialog id="dialog-douyin" class="modal" closedby="any">
+    <div class="modal-header">
+      <div>
+        <h3>抖音链接 / 网络直链导入</h3>
+        <p class="modal-sub">支持直接粘贴整段抖音分享口令（如 https://v.douyin.com/...）或 MP3/M4A/MP4 直链</p>
+      </div>
+      <button class="icon-btn" data-close-dialog="dialog-douyin" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body form-grid">
+      <label class="field">
+        <span>分享口令或链接</span>
+        <textarea id="douyin-input" rows="4" placeholder="例如：5.33 复制打开抖音，看看【作品】... https://v.douyin.com/xxxxx/"></textarea>
+      </label>
+      <label class="field">
+        <span>备用解析接口（可选，用于抖音触发风控时，支持 {url} 占位符）</span>
+        <input type="text" id="douyin-custom-api" placeholder="例如：https://your-parser.example/api?url={url}" />
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="douyin-autochart" checked />
+        <span>导入音频后自动生成初始谱面</span>
+      </label>
+      <div id="douyin-status" class="import-status" hidden></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="ghost-btn" data-close-dialog="dialog-douyin">取消</button>
+      <button type="button" id="btn-run-douyin-import" class="primary-btn">解析并导入</button>
+    </div>
+  </dialog>
+
+  <!-- Native Dialog: Shortcuts & Help -->
+  <dialog id="dialog-help" class="modal" closedby="any">
+    <div class="modal-header">
+      <h3>快捷键与跨端同步指南</h3>
+      <button class="icon-btn" data-close-dialog="dialog-help" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body help-content">
+      <h4>常用快捷键</h4>
+      <ul class="shortcut-list">
+        <li><kbd>Space</kbd> 播放 / 暂停</li>
+        <li><kbd>1</kbd> ~ <kbd>6</kbd> 切换工具（选择 / TAP / HOLD / SLIDE / 折线 / 橡皮）</li>
+        <li><kbd>R</kbd> 开启/关闭实时键盘录谱模式</li>
+        <li><kbd>P</kbd> 打开 3D 透视试玩预览</li>
+        <li><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd> 撤销 / 重做</li>
+        <li><kbd>Ctrl+C</kbd> / <kbd>Ctrl+V</kbd> 复制 / 粘贴到当前播放指针</li>
+        <li><kbd>Delete</kbd> / <kbd>Backspace</kbd> 删除所选音符</li>
+        <li><kbd>滚轮</kbd> 上下滚动时间轴 · <kbd>Ctrl+滚轮</kbd> 缩放时间轴</li>
+        <li><kbd>右键点击音符</kbd> 快速删除该音符</li>
+      </ul>
+      <h4>与 Android《星律回响》App 同步</h4>
+      <p>点击顶部 <strong>「导出 ZIP 包」</strong> 会生成包含音频文件、谱面 JSON 和 <code>manifest.json</code> 的标准谱面包，直接发送到手机并在 App 曲库中点击 <strong>「导入谱面包」</strong> 即可立即游玩；App 导出的 <code>.zip</code> 包也可直接拖入本页面二次编辑。</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="primary-btn" data-close-dialog="dialog-help">我知道了</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="./editor.js"></script>
+</body>
+</html>
