@@ -1699,9 +1699,10 @@ function initEventListeners() {
       state.chartsByKey = {};
 
       if ($('douyin-autochart').checked && state.audioBuffer) {
-        statusEl.textContent = '音频解码完成，正在分析主音并生成全部 4 个难度谱面…';
+        statusEl.textContent = '音频解码完成，正在分析主音与音高走势并生成全部 4 个难度谱面…';
         pushUndo();
         let detected = state.chart.bpm;
+        let cachedAnalysis = null;
         for (const diff of ALL_DIFFS) {
           const res = generateAutoChart(state.audioBuffer, {
             bpm: detected,
@@ -1710,11 +1711,18 @@ function initEventListeners() {
             difficulty: diff,
             onlyTapAndHold: state.chart.onlyTapAndHold,
             autoDetectBpm: diff === ALL_DIFFS[0],
-            quantize: false
+            quantize: false,
+            _cachedAnalysis: cachedAnalysis
           });
-          if (diff === ALL_DIFFS[0] && res.detectedBpm) {
-            detected = res.detectedBpm;
-            state.chart.bpm = detected;
+          if (diff === ALL_DIFFS[0]) {
+            cachedAnalysis = res.analysis;
+            if (res.detectedBpm) {
+              detected = res.detectedBpm;
+              state.chart.bpm = detected;
+            }
+            if (typeof res.detectedOffsetMs === 'number') {
+              state.offsetMs = res.detectedOffsetMs;
+            }
           }
           state.chartsByKey[currentChartKey(state.chart.laneCount, diff)] = res.notes;
         }
@@ -1763,17 +1771,25 @@ function initEventListeners() {
 
     if (generateAll) {
       let detected = state.chart.bpm;
+      let cachedAnalysis = null;
       const summary = [];
       for (const diff of ALL_DIFFS) {
         const res = generateAutoChart(state.audioBuffer, {
           ...baseOpts,
           bpm: detected,
           difficulty: diff,
-          autoDetectBpm: autoBpm && diff === ALL_DIFFS[0]
+          autoDetectBpm: autoBpm && diff === ALL_DIFFS[0],
+          _cachedAnalysis: cachedAnalysis
         });
-        if (autoBpm && diff === ALL_DIFFS[0] && res.detectedBpm) {
-          detected = res.detectedBpm;
-          state.chart.bpm = detected;
+        if (diff === ALL_DIFFS[0]) {
+          cachedAnalysis = res.analysis;
+          if (autoBpm && res.detectedBpm) {
+            detected = res.detectedBpm;
+            state.chart.bpm = detected;
+          }
+          if (autoBpm && typeof res.detectedOffsetMs === 'number') {
+            state.offsetMs = res.detectedOffsetMs;
+          }
         }
         state.chartsByKey[currentChartKey(state.chart.laneCount, diff)] = res.notes;
         summary.push(`${diff}:${res.notes.length}`);
@@ -1794,6 +1810,9 @@ function initEventListeners() {
       });
       if (autoBpm && res.detectedBpm) {
         state.chart.bpm = res.detectedBpm;
+      }
+      if (autoBpm && typeof res.detectedOffsetMs === 'number') {
+        state.offsetMs = res.detectedOffsetMs;
       }
       state.chart.notes = res.notes;
       state.chartsByKey[currentChartKey()] = res.notes;
